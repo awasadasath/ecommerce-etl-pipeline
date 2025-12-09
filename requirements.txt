@@ -1,0 +1,8 @@
+apache-airflow
+pandas
+requests
+pyarrow        
+pytest   
+google-cloud-storage
+google-cloud-bigquery
+apache-airflow-providers-google

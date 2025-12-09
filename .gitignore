@@ -1,0 +1,41 @@
+# --- Airflow Logs & Temp ---
+logs/
+*.log
+airflow.db
+airflow.cfg
+webserver_config.py
+standalone_admin_password.txt
+*.pid
+
+# --- Python ---
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Environment ---
+.env
+.venv/
+venv/
+
+# --- IDE Settings ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Output Files ---
+*.parquet
+*.csv
+*.zip
+tmp/
+
+# --- Secrets & Keys  ---
+*.json
+
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
