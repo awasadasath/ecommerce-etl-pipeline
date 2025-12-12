@@ -1,8 +1,6 @@
 provider "google" {
   project = "gcp-airflow-project-480711"
   region  = "us-central1"
-
-  credentials = file("../google_key.json") 
 }
 
 resource "google_storage_bucket" "data_lake" {

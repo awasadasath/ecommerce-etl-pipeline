@@ -24,7 +24,6 @@ BQ_DATASET    = "ecommerce"
 BQ_TABLE      = "ecommerce_transactions"
 MYSQL_CONN_ID = "mysql_default"
 GCP_CONN_ID   = "google_cloud_default"
-CURRENCY_API  = "https://r2de3-currency-api-vmftiryt6q-as.a.run.app/gbp_thb"
 
 # PATH
 TEMP_PATH = "/tmp"
@@ -121,11 +120,13 @@ def ecommerce_pipeline():
     def extract_api_data():
         import pandas as pd
         import requests
+        from airflow.models import Variable
         from datetime import datetime
         
         log.info("Fetching Currency Rates...")
+        api_url = Variable.get("currency_api_url")
         try:
-            r = requests.get(CURRENCY_API, timeout=10)
+            r = requests.get(api_url, timeout=10)
             r.raise_for_status()
             df = pd.DataFrame(r.json()).drop(columns=['id'])
             df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
