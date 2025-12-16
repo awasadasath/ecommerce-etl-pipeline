@@ -7,6 +7,17 @@
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
 ![Looker](https://img.shields.io/badge/Looker_Studio-4285F4?style=for-the-badge&logo=looker&logoColor=white)
 
+## 📑 Table of Contents
+1. [Project Overview](#-project-overview)
+2. [Architecture & Tech Stack](#-system-architecture--tech-stack)
+3. [Data Sources & Schema](#-data-sources--simulation)
+4. [ETL Pipeline & Orchestration](#-etl-pipeline--orchestration)
+5. [Dashboard & Insights](#-dashboard--business-insights)
+6. [Data Quality & Monitoring](#-data-quality--monitoring)
+7. [Infrastructure as Code](#-infrastructure-as-code-terraform)
+8. [Key Challenges](#-key-challenges--solutions)
+9. [How to Run](#-quick-start)
+
 ## 📖 Project Overview
 
 This project demonstrates a robust, end-to-end **Data Engineering solution** designed to simulate a real-world e-commerce scenario. The primary goal is to centralize fragmented transactional data, enrich it with external financial contexts, and automate the flow from raw data to actionable business insights.
