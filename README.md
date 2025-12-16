@@ -187,3 +187,36 @@ The dashboard includes dynamic filters at the top right:
 * **Date Range Picker:** Allows analysis of specific timeframes.
 * **Customer Country:** Enables drilling down into specific regional performance.
 
+## 🛡️ Data Quality & Monitoring
+
+To ensure data reliability, I implemented a strict **Data Quality Framework** that validates both the code logic and the actual data flowing through the pipeline.
+
+### 🧪 1. Pre-Deployment: Unit Testing with `pytest`
+Before deploying the DAG, the transformation logic is verified using **pytest**. I created a test suite (`test_data_cleaning_logic`) to mock dirty data scenarios and ensure the filters work correctly.
+
+**Test Scenarios:**
+* **Mock Data Injection:** Simulates raw data containing negative prices (`-50.0`) and invalid quantities (`0` or `-5`).
+* **Logic Verification:** Asserts that the cleaning function correctly removes these anomalies while preserving valid records.
+
+### 🔍 2. Runtime Validation (Inside Airflow Task)
+During the execution of the `run_transform_and_clean` function, the data undergoes automated quality gates before being saved as a Parquet file:
+
+* **Fallback Mechanism:** If the API fails to return a rate, the system automatically fills missing exchange rates with a default value (`45.0`) to prevent calculation errors.
+* **Deduplication:** Checks for duplicate line items based on `transaction_id` and `product_id`. If found, it logs a warning and keeps only the first occurrence.
+* **Business Rules Filter:**
+    * **Positive Quantity:** Removes rows where `quantity <= 0`.
+    * **Non-Negative Amount:** Removes rows where `thb_amount < 0`.
+    * **Data Completeness:** Ensuring `date` fields are not null.
+
+### 📸 3. Automated Alerting (Discord)
+The pipeline calculates the number of "bad rows" removed. If data quality issues are detected, a warning is sent immediately to Discord.
+
+![Discord Alert Notification](./images/discord_alert.png)
+*(Figure 4: Automated alerts sent to Discord when data cleaning removes invalid rows or detects duplicates)*
+
+**Alert Logic:**
+* **Trigger:** If `removed_rows > 0` (e.g., negative amounts found) or if duplicates are detected.
+* **Action:** Calls `send_discord_warning` to notify the Data Engineer with a specific message like *"⚠️ Cleaned Data: Removed 5 bad rows"*.
+
+
+
