@@ -214,7 +214,7 @@ The final stage of the pipeline is visualization. By connecting **Looker Studio*
 
 This dashboard enables stakeholders to monitor near real-time performance in local currency (THB), utilizing data processed daily from the MySQL & API pipeline.
 
-![E-commerce Sales Overview Dashboard](image_1.png)
+![E-commerce Sales Overview Dashboard](Dashboard.png)
 *(Figure 3: The final Looker Studio dashboard visualizing processed sales data)*
 
 ### 1. 🔑 Key Performance Indicators (KPIs)
