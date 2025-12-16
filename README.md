@@ -124,6 +124,7 @@ The entire data lifecycle is orchestrated by **Apache Airflow**, ensuring daily 
 ### 1. 🕹️ Orchestration & Dependency Management
 The Airflow DAG (`ecommerce_pipeline_v1`) manages the execution order. It ensures that data extraction from MySQL and API fetching happen in parallel before the transformation step begins.
 
+![Airflow DAG Graph](./images/airflow_dag.png)
 ![Airflow DAG Graph](./images/airflow_dag_graph.png)
 *(Image: The Directed Acyclic Graph (DAG) visualizing task dependencies and execution flow)*
 
