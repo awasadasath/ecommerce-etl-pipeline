@@ -7,17 +7,20 @@
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
 ![Looker](https://img.shields.io/badge/Looker_Studio-4285F4?style=for-the-badge&logo=looker&logoColor=white)
 
-## 📖 Project Overview
+## <a id="overview"></a>📖 Project Overview
 
-This project demonstrates a robust, end-to-end **Data Engineering solution** designed to simulate a real-world e-commerce scenario. The primary goal is to centralize fragmented transactional data, enrich it with external financial contexts, and automate the flow from raw data to actionable business insights.
+This project is an **end-to-end data pipeline** designed to simulate a real-world E-commerce scenario.
 
-In this pipeline, raw transaction records are extracted from an **OLTP Database (MySQL)** and enriched with dynamic exchange rates from an external **Currency API**. The data undergoes rigorous cleaning and transformation processes before being loaded into a **Data Warehouse (Google BigQuery)**. Finally, the processed data is visualized using **Looker Studio** to track key performance metrics (KPIs) such as daily revenue in local currency (THB) and product performance.
+**Why I built this?**
+Most data engineering tutorials use clean, static CSV files. I wanted to build something that reflects the **messy reality of production environments**. I designed this pipeline to extract raw transactions from a MySQL database, enrich them with live exchange rates from an API, and automate the entire flow using Airflow and Docker.
+
+Instead of just moving data, this project focuses on reliability and "Day 2" operations—like handling API failures, catching bad data, and monitoring the system via Discord.
 
 ### 🎯 Key Objectives
-* **Automation:** Orchestrate a daily ETL workflow using **Apache Airflow** to ensure data freshness without manual intervention.
-* **Data Enrichment:** Integrate internal sales data with external exchange rate APIs to calculate accurate revenue figures in THB.
-* **Infrastructure as Code (IaC):** Provision and manage Google Cloud Platform resources (GCS Buckets, BigQuery Datasets) using **Terraform** for reproducibility and standard compliance.
-* **Data Quality & Reliability:** Implement data quality checks (e.g., handling negative values, deduplication) and real-time monitoring via **Discord Webhooks** to ensure pipeline stability.
+* **Automation:** Replaced manual scripts with a daily **Apache Airflow** DAG to keep data fresh automatically.
+* **Data Enrichment:** Combined internal sales records with external currency APIs to calculate accurate revenue in THB.
+* **Infrastructure as Code (IaC):** Used **Terraform** to provision GCP resources (GCS & BigQuery) so the environment is reproducible and standard-compliant.
+* **Data Quality:** Implemented automated checks (e.g., removing negative values, deduplication) and real-time alerts via **Discord Webhooks**.
 
 ## 🏗️ Architecture
 
@@ -35,7 +38,7 @@ The following diagram illustrates the high-level architecture of the data pipeli
 
 ## 🛠️ Tech Stack & Tools
 
-The project leverages a modern data stack centered around containerization and cloud-native technologies.
+I chose this stack to practice **Cloud-Native** development. Every component runs in Docker containers to ensure it works the same way locally and in production.
 
 ![Python](https://img.shields.io/badge/Python-blue?logo=python&logoColor=white)
 ![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-017CEE?logo=Apache%20Airflow&logoColor=white)
@@ -56,19 +59,17 @@ The project leverages a modern data stack centered around containerization and c
 | **Visualization** | **Looker Studio** | Connects directly to BigQuery to visualize sales performance, exchange rate trends, and product metrics. |
 | **Monitoring** | **Discord Webhook** | specific Python callback functions trigger real-time alerts to a Discord channel for job successes, failures, and data quality warnings. |
 
-## 📂 Data Sources & Simulation
+## <a id="datasources"></a>📂 Data Sources & Simulation
 
-To simulate a realistic enterprise environment, I utilized a **Data Seeding Script** to transform raw CSV data into a fully normalized SQL database structure, simulating an internal OLTP system.
+To simulate a realistic enterprise environment, I utilized a **Data Seeding Script** to transform raw CSV data into a proper SQL database structure.
 
-### 1. Data Origin & Preprocessing Logic
+### 1. Data Origin & Preprocessing
 * **Source:** [E-Commerce Business Transaction](https://www.kaggle.com/datasets/gabrielramos87/an-online-shop-business/data) on Kaggle.
-![Raw Data Sample](./images/raw_data_sample.png)
-*(Image: Snapshot of the raw CSV data showing denormalized records)*
-* **Simulation Workflow:** The raw dataset undergoes a rigorous preprocessing pipeline using **Pandas** before being ingested into the database:
-    1.  **Date Adjustment:** Transaction dates are shifted to simulate recent, real-time activity.
-    2.  **Normalization:** The flat dataset is decomposed into three relational tables (`transaction`, `customer`, `product`) to reduce redundancy and demonstrate proper database design.
-    3.  **Anonymization:** Customer names are generated using a faker library to simulate **PII (Personally Identifiable Information)** protection compliance.
-    4.  **Ingestion:** The processed data is inserted into the **MySQL** container using `SQLAlchemy`.
+* **Simulation Workflow:** Before ingestion, I processed the raw CSV using Pandas to make it look like real-time production data:
+    1.  **Date Adjustment:** Shifted dates to the current year to simulate recent activity.
+    2.  **Normalization:** Split the flat dataset into three relational tables (`transaction`, `customer`, `product`) to practice SQL joins and schema design.
+    3.  **Anonymization:** Generated fake names for customers to simulate PII protection.
+    4.  **Ingestion:** Inserted the clean data into the MySQL container.
 
 ### 2. Simulated Database Schema (MySQL)
 The Airflow pipeline extracts data from this normalized schema:
@@ -106,9 +107,9 @@ To enrich the sales data with local currency values (THB), the pipeline integrat
 * **Integration:** Fetches the daily `GBP` to `THB` exchange rate corresponding to the transaction date.
 * **Resiliency:** Implements a **Fallback Mechanism** to use a default exchange rate if the API service is unavailable, ensuring pipeline reliability.
 
-## ⚙️ ETL Pipeline Workflow
+## <a id="etl"></a>⚙️ ETL Pipeline Workflow
 
-The entire data lifecycle is orchestrated by **Apache Airflow**, ensuring daily automation and reliability. Below is a visual walkthrough of the pipeline execution from start to finish.
+I used **Apache Airflow** to manage task dependencies and scheduling. The DAG runs once a day to fetch new transactions and update the dashboard.
 
 ### 1. 🕹️ Orchestration & Dependency Management
 The Airflow DAG (`ecommerce_pipeline_v1`) manages the execution order. It ensures that data extraction from MySQL and API fetching happen in parallel before the transformation step begins.
@@ -197,72 +198,36 @@ default_args = {
 ```
 ---
 
-## 📊 Dashboard & Business Insights
+## <a id="dashboard"></a>📊 Dashboard & Business Insights
 
-The final stage of the pipeline is visualization. By connecting **Looker Studio** directly to the **BigQuery** data warehouse, raw transactional data is transformed into an interactive executive dashboard titled **"E-commerce Sales Overview"**.
-
-This dashboard enables stakeholders to monitor near real-time performance in local currency (THB), utilizing data processed daily from the MySQL & API pipeline.
+I connected **Looker Studio** directly to the **BigQuery** warehouse to visualize the final dataset. This demonstrates how raw logs are turned into business metrics.
 
 ![E-commerce Sales Overview Dashboard](./images/Dashboard.png)
-*(Figure 3: The final Looker Studio dashboard visualizing processed sales data)*
 
-### 1. 🔑 Key Performance Indicators (KPIs)
-The top section provides an immediate snapshot of the business's total cumulative performance:
-* **Total Revenue:** **2.80B THB** (Calculated via dynamic exchange rates).
-* **Total Orders:** **19.79K** transactions processed.
-* **Customer Base:** **4.72K** unique customers served.
-* **Volume:** **5.55M** total items sold.
-
-### 2. 🏆 Product Performance Analysis
-**"Top 5 Best-Selling Products"** (Bar Chart)
-Identifies the highest revenue-generating items to inform inventory strategy.
-* **Top Performer:** *Paper Craft Little Birdie* is the clear market leader.
-* **Runners-up:** *Medium Ceramic Top Storage*, *Popcorn Holder*, and *World War 2 Gliders* follow closely.
-* **Insight:** These 5 products drive a significant portion of total revenue, suggesting high demand for craft and novelty items.
-
-### 3. 🌍 Geographic & Customer Segmentation
-**"Total Sales by Country"** (Geo Map) & **Customer Table**
-Visualizes the global footprint and identifies high-value clients.
-* **Global Reach:** The map highlights sales distribution, with major activity centered in the UK and Europe (indicated by darker clusters).
-* **Top Spenders:** The bottom-right table lists top customers by total spending (e.g., *David Harrell*, *Kelly Foster*), enabling targeted VIP marketing campaigns.
-
-### 4. 📈 Temporal Trends
-**"Daily Sales Trend"** (Time-Series Line Chart)
-Tracks revenue fluctuations from **March 2023 to May 2024**.
-* **Pattern:** The data shows periodic volatility with distinct spikes in sales activity.
-* **Growth:** A notable upward trend is observed towards the end of the period (April–May 2024), indicating successful recent campaigns or seasonal demand.
+### What the dashboard shows:
+* **Total Revenue in THB:** Calculated by joining sales data with the daily exchange rate from the API.
+* **Top Products:** Identifies best-selling items to help with inventory planning.
+* **Sales Trends:** A time-series chart tracking daily revenue performance from March 2023 to May 2024.
+* **Geographic Distribution:** Shows which countries have the highest customer density.
 
 ### 🎛️ Interactivity
-The dashboard includes dynamic filters at the top right:
-* **Date Range Picker:** Allows analysis of specific timeframes.
-* **Customer Country:** Enables drilling down into specific regional performance.
+The dashboard allows filtering by **Date Range** and **Customer Country**, enabling users to drill down into specific segments.
 
-## 🛡️ Data Quality & Monitoring
+## <a id="dataquality"></a>🛡️ Data Quality & Monitoring
 
-To ensure data reliability, I implemented a strict **Data Quality Framework** that validates both the code logic and the actual data flowing through the pipeline.
+I implemented specific checks to ensure trust in the numbers before they reach the dashboard.
 
-### 🧪 1. Pre-Deployment: Unit Testing with `pytest`
-Before deploying the DAG, the transformation logic is verified using **pytest**. I created a test suite (`test_data_cleaning_logic`) to mock dirty data scenarios and ensure the filters work correctly.
+### 1. Validation Logic
+Inside the transformation task, data passes through these gates:
+* **No Negative Revenue:** Rows with `thb_amount < 0` are automatically removed.
+* **Deduplication:** Duplicate transaction IDs are dropped to prevent inflated sales figures.
+* **Completeness:** `Date` fields must not be null.
 
-**Test Scenarios:**
-* **Mock Data Injection:** Simulates raw data containing negative prices (`-50.0`) and invalid quantities (`0` or `-5`).
-* **Logic Verification:** Asserts that the cleaning function correctly removes these anomalies while preserving valid records.
-
-### 🔍 2. Runtime Validation (Inside Airflow Task)
-During the execution of the `run_transform_and_clean` function, the data undergoes automated quality gates before being saved as a Parquet file:
-
-* **Fallback Mechanism:** If the API fails to return a rate, the system automatically fills missing exchange rates with a default value (`45.0`) to prevent calculation errors.
-* **Deduplication:** Checks for duplicate line items based on `transaction_id` and `product_id`. If found, it logs a warning and keeps only the first occurrence.
-* **Business Rules Filter:**
-    * **Positive Quantity:** Removes rows where `quantity <= 0`.
-    * **Non-Negative Amount:** Removes rows where `thb_amount < 0`.
-    * **Data Completeness:** Ensuring `date` fields are not null.
-
-### 📸 3. Automated Alerting (Discord)
-The pipeline calculates the number of "bad rows" removed. If data quality issues are detected, a warning is sent immediately to Discord.
+### 2. Automated Alerting (Discord)
+The pipeline counts how many "bad rows" were removed. If the count > 0, it triggers a **Discord Webhook** to alert me immediately. This allows for proactive fixes rather than waiting for business users to report errors.
 
 ![Discord Alert Notification](./images/discord_alert.png)
-*(Figure 4: Automated alerts sent to Discord when data cleaning removes invalid rows or detects duplicates)*
+*(Image: Automated alerts sent to Discord when data cleaning removes invalid rows or detects duplicates)*
 
 **Alert Logic:**
 * **Trigger:** If `removed_rows > 0` (e.g., negative amounts found) or if duplicates are detected.
@@ -321,38 +286,21 @@ Verification on the Google Cloud Console confirms that the resources exist and m
 * **Version Control:** Infrastructure changes are tracked via Git.
 * **Speed:** Deploys complex dependencies in minutes rather than hours.
 
-## 🧩 Key Challenges & Solutions
+## <a id="challenges"></a>🧩 Key Challenges & Solutions
 
-Building an automated pipeline comes with its own set of challenges. Below are the key hurdles I encountered and how I engineered solutions to overcome them.
+Building an automated pipeline comes with its own set of challenges. Here is how I solved the main ones:
 
-### 1. 📉 Handling External API Instability
-**The Problem:**
-The currency exchange API occasionally timed out or returned 500 errors, causing the entire Airflow DAG to fail. This broke the daily reporting SLA.
+### 1. Handling API Instability
+**The Problem:** The currency exchange API occasionally timed out or returned 500 errors, which caused the entire Airflow DAG to fail.
+**The Solution:** I added a `try-except` block with a **fallback mechanism**. If the API fails, the pipeline logs a warning and uses a safe default rate (e.g., 45.0 THB) instead of crashing. This ensures the daily report is always delivered.
 
-**The Solution:**
-I implemented a **Defensive Coding** strategy within the extraction task.
-* Added a `try-except` block to catch connection errors.
-* Created a **Fallback Mechanism**: If the API fails, the system automatically uses a hardcoded "safe" exchange rate (e.g., last known average) and logs a warning instead of crashing.
+### 2. Preventing Data Duplication
+**The Problem:** When re-running the DAG for past dates (Backfilling), data in BigQuery was being duplicated.
+**The Solution:** I enforced **Idempotency** at the loading stage. For this project, I used the `WRITE_TRUNCATE` strategy to ensure daily snapshots are clean. (For larger production tables, I would implement a `MERGE` / Upsert logic based on Transaction ID).
 
-*(Result: The pipeline achieves 99.9% uptime even during API outages.)*
-
-### 2. 🔄 Idempotency & Data Duplication
-**The Problem:**
-When re-running the DAG for past dates (Backfilling), data in BigQuery was being duplicated, leading to inflated revenue figures in the dashboard.
-
-**The Solution:**
-I enforced **Idempotency** at the data loading stage.
-* Used the `WRITE_TRUNCATE` disposition in the `GCSToBigQueryOperator` for full-load scenarios.
-* (Alternative approach mentioned for scale): For larger datasets, I would implement an `upsert` (Merge) strategy based on `TransactionNo`.
-
-### 3. 🐳 Solving "It Works on My Machine"
-**The Problem:**
-Dependency conflicts between Python versions and libraries made it difficult to run the pipeline on different environments (Local vs Cloud).
-
-**The Solution:**
-I containerized the entire Airflow environment using **Docker**.
-* Defined a custom `Dockerfile` to install specific OS-level dependencies (e.g., `libmysqlclient-dev`).
-* Used **Terraform** to ensure the Cloud Infrastructure (GCP) matched the configuration required by the application code.
+### 3. "It Works on My Machine"
+**The Problem:** Dependency conflicts between local Python and the cloud environment.
+**The Solution:** I containerized everything using **Docker** and used **Terraform** to ensure the GCP infrastructure matches the code requirements exactly.
 
 ## 📂 Repository Structure
 
