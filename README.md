@@ -10,7 +10,7 @@
 ## 📑 Table of Contents
 1. [Project Overview](#-project-overview)
 2. [Architecture](#%EF%B8%8F-architecture)
-3. [Tech Stack & Tools](#-tech-stack--tools)
+3. [Tech Stack & Tools](#-tech-stack-&-tools)
 4. [Data Sources & Schema](#-data-sources--simulation)
 5. [ETL Pipeline Workflow](#-etl-pipeline-workflow)
 6. [Dashboard & Insights](#-dashboard--business-insights)
