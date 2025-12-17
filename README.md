@@ -9,14 +9,18 @@
 
 ## 📑 Table of Contents
 1. [Project Overview](#-project-overview)
-2. [Architecture & Tech Stack](#-system-architecture--tech-stack)
-3. [Data Sources & Schema](#-data-sources--simulation)
-4. [ETL Pipeline & Orchestration](#-etl-pipeline--orchestration)
-5. [Dashboard & Insights](#-dashboard--business-insights)
-6. [Data Quality & Monitoring](#-data-quality--monitoring)
-7. [Infrastructure as Code](#-infrastructure-as-code-terraform)
-8. [Key Challenges](#-key-challenges--solutions)
-9. [How to Run](#-quick-start)
+2. [Architecture](#%EF%B8%8F-architecture)
+3. [Tech Stack & Tools](#-tech-stack--tools)
+4. [Data Sources & Schema](#-data-sources--simulation)
+5. [ETL Pipeline Workflow](#-etl-pipeline-workflow)
+6. [Dashboard & Insights](#-dashboard--business-insights)
+7. [Data Quality & Monitoring](#-data-quality--monitoring)
+8. [Infrastructure as Code](#-infrastructure-as-code-terraform)
+9. [Key Challenges](#-key-challenges--solutions)
+10. [Repository Structure](#-repository-structure)
+11. [Quick Start](#-quick-start)
+
+---
 
 ## 📖 Project Overview
 
