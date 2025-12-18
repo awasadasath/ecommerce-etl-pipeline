@@ -113,18 +113,20 @@ To enrich the sales data with local currency values (THB), the pipeline integrat
 I used **Apache Airflow** to manage task dependencies and scheduling. The DAG runs once a day to fetch new transactions and update the dashboard.
 
 ### 1. 🕹️ Orchestration & Dependency Management
-The Airflow DAG (`ecommerce_pipeline_v1`) manages the execution order. It ensures that data extraction from MySQL and API fetching happen in parallel before the transformation step begins.
+The Airflow DAG (`ecommerce_pipeline`) manages the execution order. It ensures that data extraction from MySQL and API fetching happen in parallel before the transformation step begins.
 
 ![Airflow DAG Graph](./images/airflow_dag.png)
 ![Airflow DAG Graph](./images/airflow_dag_graph.png)
 *(Image: The Directed Acyclic Graph (DAG) visualizing task dependencies and execution flow)*
 
 **Task Logic Breakdown:**
-* **`extract_mysql_data`**: Pulls raw transactional data from the internal database.
-* **`fetch_exchange_rate`**: Hits the external API to get the current THB rate.
-* **`process_and_transform`**: Merges data, cleans anomalies, and calculates revenue.
-* **`load_to_gcs`**: Uploads processed data to the staging area.
-* **`load_to_bigquery`**: Materializes the final dataset in the data warehouse.
+* **`start`**: A dummy operator marking the beginning of the pipeline execution.
+* **`extract_mysql`**: Pulls raw transactional data from the internal database.
+* **`extract_api`**: Hits the external API to get the current THB rate.
+* **`transform_data`**: Merges data, cleans anomalies, and calculates revenue.
+* **`upload_to_gcs`**: Uploads processed data to the staging area.
+* **`load_to_bq`**: Materializes the final dataset in the data warehouse.
+* **`notify_success`**: Sends a specific completion alert to Discord.
 
 ### 2. ✅ Execution Monitoring
 The pipeline is designed to be idempotent. The Grid View below confirms successful daily runs without failures.
@@ -143,7 +145,7 @@ After transformation, data is converted into **Parquet format** and stored in a 
 * **Schema Enforcement:** Preserves data types (e.g., DateTime, Float) better than CSV.
 
 ### 4. 🗄️ Data Warehouse (Google BigQuery)
-Finally, the data is loaded into BigQuery using the `WRITE_TRUNCATE` strategy (or `WRITE_APPEND` for history). The screenshot below verifies that the data—including the calculated `TotalAmountTHB`—is accurately populated.
+Finally, the data is loaded into BigQuery using the `WRITE_TRUNCATE` strategy. The screenshot below verifies that the data including the calculated `thb_amount` is accurately populated.
 
 ![BigQuery Data Preview](./images/bigquery_preview.png)
 *(Image: Final data resident in BigQuery, ready for analysis)*
@@ -171,21 +173,24 @@ except Exception as e:
     })
 ```
 #### 2. Modular Design & Separation of Concerns
-Instead of bloating the DAG file with complex logic, the transformation code is decoupled into a separate script (transform_logic.py) and imported. This makes unit testing easier and the DAG cleaner.
-
-**Importing external logic to keep DAG file clean**
-from transform_logic import run_transform_and_clean 
+Instead of **overloading** the DAG file with complex logic, the transformation code is **extracted** into a separate script (`transform_logic.py`) and imported. This makes unit testing easier and keeps the DAG focused on orchestration.
 
 ```python
+# Importing external logic to keep the DAG file clean and readable
+from transform_logic import run_transform_and_clean
+
 @task(task_id="transform_data")
 def transform_data():
     log.info("Starting Transformation Logic from external script...")
+    
+    # Executing the external logic
     output_file_path = run_transform_and_clean(
         mysql_file=MYSQL_OUTPUT_FILE, 
         api_file=API_OUTPUT_FILE
     )
     return output_file_path
 ```
+
 #### 3. Automated Error Handling
 I utilized Airflow's on_failure_callback to trigger the Discord Webhook immediately upon any task failure, minimizing downtime.
 
@@ -196,6 +201,22 @@ default_args = {
     'retries': 1, 
     'retry_delay': timedelta(minutes=1),
 }
+```
+#### 3. Security & Configuration Management
+To follow security best practices, I avoided hardcoding credentials. Instead, I utilized **Airflow Connections** for database access and **Airflow Variables** for API configurations. This decouples sensitive data from the codebase.
+
+```python
+from airflow.models import Variable
+from airflow.hooks.base import BaseHook
+
+@task(task_id="extract_securely")
+def extract_data():
+    # Fetching configuration securely at runtime
+    api_key = Variable.get("currency_api_key")
+    db_conn = BaseHook.get_connection("my_local_mysql")
+    
+    log.info(f"Connecting to {db_conn.host} securely...")
+    # ... extraction logic ...
 ```
 ---
 
@@ -221,7 +242,7 @@ I implemented specific checks to ensure trust in the numbers before they reach t
 ### 1. Validation Logic
 Inside the transformation task, data passes through these gates:
 * **No Negative Revenue:** Rows with `thb_amount < 0` are automatically removed.
-* **Deduplication:** Duplicate transaction IDs are dropped to prevent inflated sales figures.
+* **Deduplication:** Duplicate transaction IDs are removed to avoid **double counting**.
 * **Completeness:** `Date` fields must not be null.
 
 ### 2. Automated Alerting (Discord)
@@ -292,7 +313,7 @@ Verification on the Google Cloud Console confirms that the resources exist and m
 Building an automated pipeline comes with its own set of challenges. Here is how I solved the main ones:
 
 ### 1. Handling API Instability
-**The Problem:** The currency exchange API occasionally timed out or returned 500 errors, which caused the entire Airflow DAG to fail.
+**The Problem:** The currency exchange API occasionally timed out or returned 500 Error, which caused the entire Airflow DAG to fail.
 **The Solution:** I added a `try-except` block with a **fallback mechanism**. If the API fails, the pipeline logs a warning and uses a safe default rate (e.g., 45.0 THB) instead of crashing. This ensures the daily report is always delivered.
 
 ### 2. Preventing Data Duplication
@@ -360,3 +381,20 @@ Open your browser to http://localhost:8080.
 Login with credentials: airflow / airflow.
 
 Locate the DAG ecommerce_pipeline and toggle the switch to ON.
+
+## ⚙️ Configuration Setup
+To run this pipeline, the following Airflow configurations are required:
+
+### 🔐 Connections
+| Connection ID | Conn Type | Description |
+| :--- | :--- | :--- |
+| `mysql_default` | MySQL | Connects to the simulated Transaction Database. |
+| `google_cloud_default` | Google Cloud | Authenticates with GCP services (GCS & BigQuery). |
+
+### 🔑 Variables
+| Key | Value Description | Usage |
+| :--- | :--- | :--- |
+| `currency_api_url` | URL string | Endpoint for the external Currency Exchange API. |
+| `discord_webhook` | URL string | Webhook URL for sending success/failure alerts to Discord. |
+
+---
