@@ -12,9 +12,10 @@
 This project is an **end-to-end data pipeline** designed to simulate a real-world E-commerce scenario.
 
 **Why I built this?**
+
 Most data engineering tutorials use clean, static CSV files. I wanted to build something that reflects the **messy reality of production environments**. I designed this pipeline to extract raw transactions from a MySQL database, enrich them with live exchange rates from an API, and automate the entire flow using Airflow and Docker.
 
-Instead of just moving data, this project focuses on reliability and "Day 2" operations—like handling API failures, catching bad data, and monitoring the system via Discord.
+Instead of just moving data, this project focuses on solving production-level problems like handling API failures, catching bad data, and monitoring the system via Discord.
 
 ### 🎯 Key Objectives
 * **Automation:** Replaced manual scripts with a daily **Apache Airflow** DAG to keep data fresh automatically.
@@ -53,11 +54,11 @@ I chose this stack to practice **Cloud-Native** development. Every component run
 | **Orchestration** | **Apache Airflow** | Schedules and monitors the daily ETL workflow. Runs inside Docker containers to ensure environment consistency. |
 | **Language** | **Python** | Used for defining DAGs and writing the core transformation logic. **Pandas** is utilized for efficient in-memory data processing and cleaning. |
 | **Infrastructure** | **Terraform** | Manages GCP resources (GCS buckets, BigQuery datasets) via code (IaC), ensuring the infrastructure is reproducible and version-controlled. |
-| **Containerization** | **Docker** | Encapsulates the Airflow environment, Postgres (metadata DB), and Redis (broker) into portable services using `docker-compose`. |
+| **Containerization** | **Docker** | Packages the Airflow environment, Postgres (metadata DB), and Redis (broker) into portable services using docker-compose. |
 | **Data Lake** | **Google Cloud Storage (GCS)** | Acts as the staging area for processed Parquet files before loading them into the warehouse. |
 | **Data Warehouse** | **Google BigQuery** | Serverless data warehouse used to store the final transactional data, enabling high-speed SQL queries for analytics. |
 | **Visualization** | **Looker Studio** | Connects directly to BigQuery to visualize sales performance, exchange rate trends, and product metrics. |
-| **Monitoring** | **Discord Webhook** | specific Python callback functions trigger real-time alerts to a Discord channel for job successes, failures, and data quality warnings. |
+| **Monitoring** | **Discord Webhook** | Specific Python callback functions trigger real-time alerts to a Discord channel for job successes, failures, and data quality warnings. |
 
 ## <a id="datasources"></a>📂 Data Sources & Simulation
 
@@ -66,7 +67,7 @@ To simulate a realistic enterprise environment, I utilized a **Data Seeding Scri
 ### 1. Data Origin & Preprocessing
 * **Source:** [E-Commerce Business Transaction](https://www.kaggle.com/datasets/gabrielramos87/an-online-shop-business/data) on Kaggle.
 * **Simulation Workflow:** Before ingestion, I processed the raw CSV using Pandas to make it look like real-time production data:
-    1.  **Date Adjustment:** Shifted dates to the current year to simulate recent activity.
+    1.  **Date Adjustment:** Shifted transaction dates to the **2023–2024** period to simulate recent activity.
     2.  **Normalization:** Split the flat dataset into three relational tables (`transaction`, `customer`, `product`) to practice SQL joins and schema design.
     3.  **Anonymization:** Generated fake names for customers to simulate PII protection.
     4.  **Ingestion:** Inserted the clean data into the MySQL container.
@@ -78,7 +79,7 @@ The Airflow pipeline extracts data from this normalized schema:
 **Table 1: `transaction` (Fact Table)**
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `TransactionNo` | TEXT | Unique transaction ID (Starts with 'C' for cancellations) |
+| `TransactionNo` | TEXT | Unique transaction ID |
 | `Date` | DATETIME | Timestamp of the transaction |
 | `ProductNo` | TEXT | Foreign Key linking to the Product table |
 | `CustomerNo` | DOUBLE | Foreign Key linking to the Customer table |
