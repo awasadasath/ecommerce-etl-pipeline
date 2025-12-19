@@ -131,7 +131,7 @@ def ecommerce_pipeline():
             df = pd.DataFrame(r.json()).drop(columns=['id'])
             df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
         except Exception as e:
-            log.error(f"API Error: {e}. Using Fallback Data (45.0).")
+            log.error(f"API Error: {e}. Using Fallback Data (42.0).")
             
             df = pd.DataFrame({
                 'date': [datetime.now().strftime('%Y-%m-%d')], 
