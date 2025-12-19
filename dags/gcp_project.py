@@ -135,7 +135,7 @@ def ecommerce_pipeline():
             
             df = pd.DataFrame({
                 'date': [datetime.now().strftime('%Y-%m-%d')], 
-                'gbp_thb': [45.0]
+                'gbp_thb': [42.0]
             })
         
         df.to_parquet(API_OUTPUT_FILE, index=False)
