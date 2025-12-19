@@ -75,11 +75,11 @@ To simulate a realistic enterprise environment, I utilized a **Data Seeding Scri
 ### 2. Simulated Database Schema (MySQL)
 The Airflow pipeline extracts data from this normalized schema:
 ![Database Schema](./images/schema_diagram.png)
-
+*(Image: Entity-Relationship Diagram showing the normalized 3-table structure)*
 **Table 1: `transaction` (Fact Table)**
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `TransactionNo` | TEXT | Unique transaction ID |
+| `TransactionNo` | TEXT | Transaction ID |
 | `Date` | DATETIME | Timestamp of the transaction |
 | `ProductNo` | TEXT | Foreign Key linking to the Product table |
 | `CustomerNo` | DOUBLE | Foreign Key linking to the Customer table |
@@ -100,7 +100,6 @@ The Airflow pipeline extracts data from this normalized schema:
 | `ProductName` | TEXT | Description/Name of the product |
 
 ![MySQL Query Screenshot](./images/mysql_query_result.png)
-*(Image: Entity-Relationship Diagram showing the normalized 3-table structure)*
 ### 3. External Source: Currency Exchange API
 To enrich the sales data with local currency values (THB), the pipeline integrates with an external API.
 ![API Response](./images/api_response_example.png)
@@ -164,12 +163,12 @@ try:
     r.raise_for_status()
     # ... process JSON ...
 except Exception as e:
-    log.error(f"API Error: {e}. Using Fallback Data (45.0).")
+    log.error(f"API Error: {e}. Using Fallback Data (42.0).")
     
     # Fallback to default exchange rate to keep pipeline running
     df = pd.DataFrame({
         'date': [datetime.now().strftime('%Y-%m-%d')], 
-        'gbp_thb': [45.0]
+        'gbp_thb': [42.0]
     })
 ```
 #### 2. Modular Design & Separation of Concerns
@@ -202,21 +201,29 @@ default_args = {
     'retry_delay': timedelta(minutes=1),
 }
 ```
-#### 3. Security & Configuration Management
+#### 4. Security & Configuration Management
 To follow security best practices, I avoided hardcoding credentials. Instead, I utilized **Airflow Connections** for database access and **Airflow Variables** for API configurations. This decouples sensitive data from the codebase.
 
 ```python
 from airflow.models import Variable
-from airflow.hooks.base import BaseHook
+from airflow.providers.mysql.hooks.mysql import MySqlHook
 
-@task(task_id="extract_securely")
-def extract_data():
-    # Fetching configuration securely at runtime
-    api_key = Variable.get("currency_api_key")
-    db_conn = BaseHook.get_connection("my_local_mysql")
-    
-    log.info(f"Connecting to {db_conn.host} securely...")
-    # ... extraction logic ...
+@task(task_id="extract_mysql")
+    def extract_mysql_data():
+        import pandas as pd 
+        
+        log.info("Extracting ALL data from MySQL...")
+        mysql_hook = MySqlHook(MYSQL_CONN_ID)
+
+ @task(task_id="extract_api")
+    def extract_api_data():
+        import pandas as pd
+        import requests
+        from airflow.models import Variable
+        from datetime import datetime
+        
+        log.info("Fetching Currency Rates...")
+        api_url = Variable.get("currency_api_url")
 ```
 ---
 
@@ -230,7 +237,7 @@ I connected **Looker Studio** directly to the **BigQuery** warehouse to visualiz
 * **Total Revenue in THB:** Calculated by joining sales data with the daily exchange rate from the API.
 * **Top Products:** Identifies best-selling items to help with inventory planning.
 * **Sales Trends:** A time-series chart tracking daily revenue performance from March 2023 to May 2024.
-* **Geographic Distribution:** Shows which countries have the highest customer density.
+* **Geographic Distribution:** Shows which countries have the highest sales amount.
 
 ### 🎛️ Interactivity
 The dashboard allows filtering by **Date Range** and **Customer Country**, enabling users to drill down into specific segments.
@@ -295,13 +302,14 @@ resource "google_bigquery_dataset" "dataset" {
 Running `terraform apply` initializes the state and builds the cloud environment automatically. The screenshot below confirms the successful creation of resources.
 
 ![Terraform Apply Output](./images/terraform_apply.png)
-*(Figure 5: Terminal output confirming the successful creation of the bucket and dataset)*
+*(Image: Terminal output confirming the successful creation of the bucket and dataset)*
 
 ### 3. ✅ Cloud Verification
 Verification on the Google Cloud Console confirms that the resources exist and match the Terraform configuration.
 
-![GCP Resources](./images/gcp_resources_verified.png)
-*(Figure 6: Verified creation of the 'ecommerce' dataset and 'datalake' bucket in GCP Console)*
+![GCS Resources](./images/gcs_resources_verified.png)
+![BQ Resources](./images/bq_resources_verified.png)
+*(Image: Verified creation of the 'ecommerce' dataset and 'datalake' bucket in GCP Console)*
 
 **Why Terraform?**
 * **Consistency:** Eliminates environment drift between local testing and production.
@@ -314,7 +322,7 @@ Building an automated pipeline comes with its own set of challenges. Here is how
 
 ### 1. Handling API Instability
 **The Problem:** The currency exchange API occasionally timed out or returned 500 Error, which caused the entire Airflow DAG to fail.
-**The Solution:** I added a `try-except` block with a **fallback mechanism**. If the API fails, the pipeline logs a warning and uses a safe default rate (e.g., 45.0 THB) instead of crashing. This ensures the daily report is always delivered.
+**The Solution:** I added a `try-except` block with a **fallback mechanism**. If the API fails, the pipeline logs a warning and uses a safe default rate (e.g., 42.0 THB) instead of crashing. This ensures the daily report is always delivered.
 
 ### 2. Preventing Data Duplication
 **The Problem:** When re-running the DAG for past dates (Backfilling), data in BigQuery was being duplicated.
