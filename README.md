@@ -323,6 +323,7 @@ Verification on the Google Cloud Console confirms that the resources exist and m
 
 ![GCS Resources](./images/gcs_resources_verified.png)
 ![BQ Resources](./images/bq_resources_verified.png)
+
 *(Image: Verified creation of the 'ecommerce' dataset and 'datalake' bucket in GCP Console)*
 
 **Why Terraform?**
