@@ -142,6 +142,7 @@ The pipeline is designed to be idempotent. The Grid View below confirms successf
 After transformation, data is converted into **Parquet format** and stored in a Data Lake (GCS). This serves as a backup and staging area before warehousing.
 
 ![GCS Staging Bucket](./images/gcs_bucket_files.png)
+
 *(Image: Processed Parquet files stored in the GCS Staging Bucket)*
 
 **Why Parquet?**
@@ -152,6 +153,7 @@ After transformation, data is converted into **Parquet format** and stored in a 
 Finally, the data is loaded into BigQuery using the `WRITE_TRUNCATE` strategy. The screenshot below verifies that the data including the calculated `thb_amount` is accurately populated.
 
 ![BigQuery Data Preview](./images/bigquery_preview.png)
+
 *(Image: Final dataset and table in BigQuery, ready for analysis)*
 
 ### 💻 Key Implementation Details (Code Highlights)
