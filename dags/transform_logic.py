@@ -41,7 +41,7 @@ def run_transform_and_clean(mysql_file, api_file):
     final_df = tx_df.merge(rate_df, how="left", left_on="join_date", right_on="date")
     
     # Fill NA & Calculate
-    final_df['gbp_thb'] = final_df['gbp_thb'].fillna(45.0)
+    final_df['gbp_thb'] = final_df['gbp_thb'].fillna(42.0)
     final_df['thb_amount'] = final_df['total_amount'] * final_df['gbp_thb']
     
     # Rename & Format Date
