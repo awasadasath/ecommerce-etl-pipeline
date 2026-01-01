@@ -159,22 +159,23 @@ Finally, the data is loaded into BigQuery using the `WRITE_TRUNCATE` strategy. T
 To ensure maintainability and reliability, the DAG is implemented using **Airflow TaskFlow API (@task)** with modular design principles.
 
 #### 1. Resilience: API Fallback Mechanism
-To prevent pipeline failure during external API outages, I implemented a `try-except` block. If the API times out, the system automatically defaults to a safe static rate.
+To prevent pipeline failure during external API outages, I implemented a **Multi-Layer Defense Strategy**:
+
+1. **Extraction Layer:** If the API fails, the task catches the error and returns an **empty DataFrame structure**. This prevents the Airflow task from crashing while maintaining the data schema for the next step.
+2. **Transformation Layer:** I use `.fillna(42.0)` during the merge process. This ensures that even if the API data is missing or dates don't match, the pipeline successfully calculates revenue using a safe default rate.
 
 ```python
-# Example from extract_api_data task
+# Layer 1: In extract_api_data task
 try:
     r = requests.get(api_url, timeout=10)
-    r.raise_for_status()
     # ... process JSON ...
-except Exception as e:
-    log.error(f"API Error: {e}. Using Fallback Data (42.0).")
-    
-    # Fallback to default exchange rate to keep pipeline running
-    df = pd.DataFrame({
-        'date': [datetime.now().strftime('%Y-%m-%d')], 
-        'gbp_thb': [42.0]
-    })
+ except Exception as e:
+            log.error(f"API Error: {e}. Returning Empty DataFrame structure.")
+            df = pd.DataFrame(columns=['date', 'gbp_thb'])
+
+# Layer 2: In transformation logic
+# If merge results in NaN (due to empty API data or mismatched dates), fill with default
+final_df['gbp_thb'] = final_df['gbp_thb'].fillna(42.0)
 ```
 #### 2. Modular Design & Separation of Concerns
 Instead of **overloading** the DAG file with complex logic, the transformation code is **extracted** into a separate script (`transform_logic.py`) and imported. This makes unit testing easier and keeps the DAG focused on orchestration.
@@ -257,10 +258,11 @@ The dashboard allows filtering by **Date Range** and **Customer Country**, enabl
 I implemented specific checks to ensure trust in the numbers before they reach the dashboard.
 
 ### 1. Validation Logic
-Inside the transformation task, data passes through these gates:
-* **No Negative Revenue:** Rows with `thb_amount < 0` are automatically removed.
-* **Deduplication:** Duplicate transaction IDs are removed to avoid **double counting**.
-* **Completeness:** `Date` fields must not be null.
+Inside the transformation task (`transform_logic.py`), data passes through rigorous automated gates:
+* **Deduplication:** Checks for duplicate Line Items (`transaction_id` + `product_id`) to prevent double counting.
+* **Business Logic:** Filters out invalid rows where `Quantity <= 0`.
+* **Sanity Check:** Removes rows with negative `thb_amount` or missing `Date`.
+* **Fill Nulls:** Automatically fills missing exchange rates with a fallback value to ensure calculations never fail.
 
 ### 2. Automated Alerting (Discord)
 The pipeline counts how many "bad rows" were removed. If the count > 0, it triggers a **Discord Webhook** to alert me immediately. This allows for proactive fixes rather than waiting for business users to report errors.
