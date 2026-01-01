@@ -34,7 +34,7 @@ GCS_PATH          = "staging/transaction.parquet"
 
 log = logging.getLogger(__name__)
 
-# === EXTERNAL LOGIC IMPORT ===
+# EXTERNAL LOGIC IMPORT
 from transform_logic import run_transform_and_clean 
 
 # 2. ALERT SYSTEM
@@ -42,7 +42,7 @@ from transform_logic import run_transform_and_clean
 def send_discord(msg_content):
     webhook = Variable.get("discord_webhook", default_var=None)
     if not webhook: 
-        log.warning("⚠️ Discord Webhook not found in Airflow Variables")
+        log.warning("Discord Webhook not found in Airflow Variables")
         return
     try:
         data = {"username": "Airflow Bot", "content": msg_content}
