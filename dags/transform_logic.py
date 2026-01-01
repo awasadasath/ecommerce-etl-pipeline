@@ -3,11 +3,7 @@ import logging
 import requests
 import os
 from datetime import datetime
-
-try:
-    from airflow.models import Variable
-except ImportError:
-    Variable = None
+from airflow.models import Variable
 
 log = logging.getLogger(__name__)
 
