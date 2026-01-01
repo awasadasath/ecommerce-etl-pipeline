@@ -70,12 +70,13 @@ To simulate a realistic enterprise environment, I utilized a **Data Seeding Scri
     1.  **Date Adjustment:** Shifted transaction dates to the **2023–2024** period to simulate recent activity.
     2.  **Normalization:** Split the flat dataset into three relational tables (`transaction`, `customer`, `product`) to practice SQL joins and schema design.
     3.  **Anonymization:** Generated fake names for customers to simulate PII protection.
-    4.  **Ingestion:** Inserted the clean data into the MySQL container.
+    4.  **Ingestion:** Inserted the clean data into the MySQL database.
 
 ### 2. Simulated Database Schema (MySQL)
 The Airflow pipeline extracts data from this normalized schema:
 ![Database Schema](./images/schema_diagram.png)
 *(Image: Entity-Relationship Diagram showing the normalized 3-table structure)*
+
 **Table 1: `transaction` (Fact Table)**
 | Column | Type | Description |
 | :--- | :--- | :--- |
@@ -91,7 +92,7 @@ The Airflow pipeline extracts data from this normalized schema:
 | :--- | :--- | :--- |
 | `CustomerNo` | DOUBLE | Unique customer identifier |
 | `Name` | TEXT | Anonymized customer name |
-| `Country` | TEXT | Country of residence |
+| `Country` | TEXT | Country of customers |
 
 **Table 3: `product` (Dimension Table)**
 | Column | Type | Description |
@@ -100,9 +101,13 @@ The Airflow pipeline extracts data from this normalized schema:
 | `ProductName` | TEXT | Description/Name of the product |
 
 ![MySQL Query Screenshot](./images/mysql_query_result.png)
+
+(Image: Preview of the customer dimension table with anonymized PII data)
+
 ### 3. External Source: Currency Exchange API
 To enrich the sales data with local currency values (THB), the pipeline integrates with an external API.
 ![API Response](./images/api_response_example.png)
+
 *(Image: Example JSON response from the Currency API, showing GBP to THB rate)*
 * **Integration:** Fetches the daily `GBP` to `THB` exchange rate corresponding to the transaction date.
 * **Resiliency:** Implements a **Fallback Mechanism** to use a default exchange rate if the API service is unavailable, ensuring pipeline reliability.
@@ -147,7 +152,7 @@ After transformation, data is converted into **Parquet format** and stored in a 
 Finally, the data is loaded into BigQuery using the `WRITE_TRUNCATE` strategy. The screenshot below verifies that the data including the calculated `thb_amount` is accurately populated.
 
 ![BigQuery Data Preview](./images/bigquery_preview.png)
-*(Image: Final data resident in BigQuery, ready for analysis)*
+*(Image: Final dataset and table in BigQuery, ready for analysis)*
 
 ### 💻 Key Implementation Details (Code Highlights)
 
@@ -157,7 +162,7 @@ To ensure maintainability and reliability, the DAG is implemented using **Airflo
 To prevent pipeline failure during external API outages, I implemented a `try-except` block. If the API times out, the system automatically defaults to a safe static rate.
 
 ```python
-# Snippet from extract_api_data task
+# Example from extract_api_data task
 try:
     r = requests.get(api_url, timeout=10)
     r.raise_for_status()
@@ -234,10 +239,15 @@ I connected **Looker Studio** directly to the **BigQuery** warehouse to visualiz
 ![E-commerce Sales Overview Dashboard](./images/Dashboard.png)
 
 ### What the dashboard shows:
-* **Total Revenue in THB:** Calculated by joining sales data with the daily exchange rate from the API.
-* **Top Products:** Identifies best-selling items to help with inventory planning.
+
+* **Key Performance Indicators (KPIs):**
+    * **Total Amount (THB):** Calculated by joining sales data with daily exchange rates from the API to show total revenue in Thai Baht (2.80B).
+    * **Total Orders & Items Sold:** Tracks transaction volume (19.79K orders) and product movement (5.55M items) to monitor demand.
+    * **Number of Customers:** Indicates the size of the active customer base (4.72K unique customers).
 * **Sales Trends:** A time-series chart tracking daily revenue performance from March 2023 to May 2024.
-* **Geographic Distribution:** Shows which countries have the highest sales amount.
+* **Top Products:** Identifies best-selling items (e.g., Paper Craft Little Birdie, Medium Ceramic Top Storage Jar) to assist with inventory planning.
+* **Geographic Distribution:** A map visualization showing sales concentration by country.
+* **Top Customers:** A leaderboard ranking customers by total spending, helping to identify high-value clients (VIPs).
 
 ### 🎛️ Interactivity
 The dashboard allows filtering by **Date Range** and **Customer Country**, enabling users to drill down into specific segments.
