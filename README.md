@@ -270,14 +270,18 @@ Inside the transformation task (`transform_logic.py`), data passes through rigor
 * **Resilience:** Automatically fills missing exchange rates with a fallback value (Default: 42.0 THB) to ensure calculations never fail.
 
 ### 2. Automated Alerting (Discord)
-The pipeline counts how many "bad rows" were removed. If the count > 0, it triggers a **Discord Webhook** to alert me immediately. This allows for proactive fixes rather than waiting for business users to report errors.
+Instead of silent failures, the pipeline sends a **Data Quality Summary** to Discord after every transformation run. This provides immediate visibility into how much data was processed and cleaned.
 
 ![Discord Alert Notification](./images/discord_alert.png)
-*(Image: Automated alerts sent to Discord when data cleaning removes invalid rows or detects duplicates)*
+*(Image: Automated summary report sent to Discord showing initial rows, duplicates found, and final row count)*
 
 **Alert Logic:**
-* **Trigger:** If `removed_rows > 0` (e.g., negative price found) or if duplicates are detected.
-* **Action:** Calls `send_discord_warning` to notify the Data Engineer with a specific message like *"⚠️ Cleaned Data: Removed 5 bad rows"*.
+* **Trigger:** Runs automatically at the end of the `transform_data` task.
+* **Content:** Sends a structured message detailing:
+    * `Initial Input`: Total rows fetched.
+    * `Duplicates Dropped`: Number of redundant records removed.
+    * `Bad Rows Removed`: Invalid data filtered out.
+    * `Final Rows`: Ready for BigQuery loading.
 
 ## ☁️ Infrastructure as Code (Terraform)
 
