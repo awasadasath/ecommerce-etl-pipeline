@@ -367,8 +367,6 @@ The project is organized into modular components to separate orchestration, logi
 │   ├── .terraform.lock.hcl
 │   └── main.tf                  # Infrastructure as Code (GCP Resources)
 │                 
-├── tests/
-│   └── test_transform.py    # Unit tests (pytest) for data logic
 ├── images/                      # Screenshots used in this README
 ├── docker-compose.yaml          # Docker configuration for Airflow environment
 ├── Dockerfile
