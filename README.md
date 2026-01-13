@@ -187,7 +187,6 @@ Instead of **overloading** the DAG file with complex logic, the transformation c
 
 ```python
 # Importing external logic to keep the DAG file clean and readable
-# Importing external logic to keep the DAG file clean and readable
 from transform_logic import run_transform_and_clean
 
 @task(task_id="transform_data")
@@ -277,7 +276,7 @@ The pipeline counts how many "bad rows" were removed. If the count > 0, it trigg
 *(Image: Automated alerts sent to Discord when data cleaning removes invalid rows or detects duplicates)*
 
 **Alert Logic:**
-* **Trigger:** If `removed_rows > 0` (e.g., negative amounts found) or if duplicates are detected.
+* **Trigger:** If `removed_rows > 0` (e.g., negative price found) or if duplicates are detected.
 * **Action:** Calls `send_discord_warning` to notify the Data Engineer with a specific message like *"⚠️ Cleaned Data: Removed 5 bad rows"*.
 
 ## ☁️ Infrastructure as Code (Terraform)
