@@ -247,11 +247,11 @@ I connected **Looker Studio** directly to the **BigQuery** warehouse to visualiz
 ### What the dashboard shows:
 
 * **Key Performance Indicators (KPIs):**
-    * **Total Amount (THB):** Calculated by joining sales data with daily exchange rates from the API to show total revenue in Thai Baht (2.80B).
-    * **Total Orders & Items Sold:** Tracks transaction volume (19.79K orders) and product movement (5.55M items) to monitor demand.
-    * **Number of Customers:** Indicates the size of the active customer base (4.72K unique customers).
+    * **Total Amount (THB):** Calculated by joining sales data with daily exchange rates from the API to show total revenue in Thai Baht (2.68B).
+    * **Total Orders & Items Sold:** Tracks transaction volume (23.20K orders) and product movement (5.28M items) to monitor demand.
+    * **Number of Customers:** Indicates the size of the active customer base (4.74K unique customers).
 * **Sales Trends:** A time-series chart tracking daily revenue performance from March 2023 to May 2024.
-* **Top Products:** Identifies best-selling items (e.g., Paper Craft Little Birdie, Medium Ceramic Top Storage Jar) to assist with inventory planning.
+* **Top Products:** Identifies best-selling items (e.g., Popcorn Holder, World War 2 Gliders Asstd Designs) to assist with inventory planning.
 * **Geographic Distribution:** A map visualization showing sales concentration by country.
 * **Top Customers:** A leaderboard ranking customers by total spending, helping to identify high-value clients (VIPs).
 
