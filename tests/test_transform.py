@@ -27,6 +27,6 @@ def test_data_cleaning_logic():
     assert len(df) == 1 
     assert df.iloc[0]['transaction_id'] == 1
     
-    # ต้องไม่มีค่าติดลบหลงเหลือ
+    # ต้องไม่มีค่าติดลบเหลือ
     assert (df['thb_amount'] < 0).sum() == 0
     assert (df['quantity'] <= 0).sum() == 0

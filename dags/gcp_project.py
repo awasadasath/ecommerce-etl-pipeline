@@ -30,13 +30,19 @@ GCS_PATH          = "staging/transaction.parquet"
 
 log = logging.getLogger(__name__)
 
+<<<<<<< HEAD
+=======
+# EXTERNAL LOGIC IMPORT
+from transform_logic import run_transform_and_clean 
+
+>>>>>>> a4fea9fe09fcec3df45131c3a7d6e7b386cd7bf6
 # 2. ALERT SYSTEM
 
 def send_discord(msg_content):
     import requests
     webhook = Variable.get("discord_webhook", default_var=None)
     if not webhook: 
-        log.warning("⚠️ Discord Webhook not found in Airflow Variables")
+        log.warning("Discord Webhook not found in Airflow Variables")
         return
     try:
         data = {"username": "Airflow Bot", "content": msg_content}
@@ -122,8 +128,17 @@ def ecommerce_pipeline():
             df = pd.DataFrame(r.json()).drop(columns=['id'])
             df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
         except Exception as e:
+<<<<<<< HEAD
             log.error(f"API Error: {e}. Returning Empty DataFrame structure.")
             df = pd.DataFrame(columns=['date', 'gbp_thb'])
+=======
+            log.error(f"API Error: {e}. Using Fallback Data (42.0).")
+            
+            df = pd.DataFrame({
+                'date': [datetime.now().strftime('%Y-%m-%d')], 
+                'gbp_thb': [42.0]
+            })
+>>>>>>> a4fea9fe09fcec3df45131c3a7d6e7b386cd7bf6
         
         df.to_parquet(API_OUTPUT_FILE, index=False)
 

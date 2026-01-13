@@ -1,6 +1,11 @@
 import pandas as pd
 import logging
 import requests
+<<<<<<< HEAD
+=======
+import os
+from datetime import datetime
+>>>>>>> a4fea9fe09fcec3df45131c3a7d6e7b386cd7bf6
 from airflow.models import Variable
 
 log = logging.getLogger(__name__)
