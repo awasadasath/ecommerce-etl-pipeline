@@ -172,12 +172,14 @@ To prevent pipeline failure during external API outages, I implemented a **Multi
 try:
     r = requests.get(api_url, timeout=10)
     # ... process JSON ...
- except Exception as e:
-            log.error(f"API Error: {e}. Returning Empty DataFrame structure.")
-            df = pd.DataFrame(columns=['date', 'gbp_thb'])
+except Exception as e:
+    log.error(f"API Error: {e}. Returning Empty DataFrame structure.")
+    # Create empty DF with correct columns to prevent Join failure later
+    df = pd.DataFrame(columns=['date', 'gbp_thb']) 
 
 # Layer 2: In transformation logic
-# If merge results in NaN (due to empty API data or mismatched dates), fill with default
+# Left Join will result in NaN, then we fill with default
+final_df = tx_df.merge(rate_df, how="left", ...)
 final_df['gbp_thb'] = final_df['gbp_thb'].fillna(42.0)
 ```
 #### 2. Modular Design & Separation of Concerns
@@ -185,18 +187,19 @@ Instead of **overloading** the DAG file with complex logic, the transformation c
 
 ```python
 # Importing external logic to keep the DAG file clean and readable
+# Importing external logic to keep the DAG file clean and readable
 from transform_logic import run_transform_and_clean
 
 @task(task_id="transform_data")
 def transform_data():
     log.info("Starting Transformation Logic from external script...")
     
-    # Executing the external logic
-    output_file_path = run_transform_and_clean(
+    # Executing the external logic (Updated to include output path)
+    run_transform_and_clean(
         mysql_file=MYSQL_OUTPUT_FILE, 
-        api_file=API_OUTPUT_FILE
+        api_file=API_OUTPUT_FILE,
+        output_path=FINAL_OUTPUT_FILE  # Passed explicitly to ensure consistency
     )
-    return output_file_path
 ```
 
 #### 3. Automated Error Handling
@@ -263,9 +266,9 @@ I implemented specific checks to ensure trust in the numbers before they reach t
 ### 1. Validation Logic
 Inside the transformation task (`transform_logic.py`), data passes through rigorous automated gates:
 * **Deduplication:** Checks for duplicate Line Items (`transaction_id` + `product_id`) to prevent double counting.
-* **Business Logic:** Filters out invalid rows where `Quantity <= 0`.
-* **Sanity Check:** Removes rows with negative `thb_amount` or missing `Date`.
-* **Fill Nulls:** Automatically fills missing exchange rates with a fallback value to ensure calculations never fail.
+* **Business Logic:** Fully supports **Refunds** (allowing negative `Quantity`) but filters out invalid rows where `Price < 0` (Unit price cannot be negative).
+* **Data Integrity:** Enforces schema validity by dropping rows with missing keys (`transaction_id`) or timestamps (`date`).
+* **Resilience:** Automatically fills missing exchange rates with a fallback value (Default: 42.0 THB) to ensure calculations never fail.
 
 ### 2. Automated Alerting (Discord)
 The pipeline counts how many "bad rows" were removed. If the count > 0, it triggers a **Discord Webhook** to alert me immediately. This allows for proactive fixes rather than waiting for business users to report errors.
