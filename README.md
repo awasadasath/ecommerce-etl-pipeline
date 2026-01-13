@@ -193,7 +193,7 @@ from transform_logic import run_transform_and_clean
 def transform_data():
     log.info("Starting Transformation Logic from external script...")
     
-    # Executing the external logic (Updated to include output path)
+    # Executing the external logic
     run_transform_and_clean(
         mysql_file=MYSQL_OUTPUT_FILE, 
         api_file=API_OUTPUT_FILE,
@@ -367,8 +367,6 @@ The project is organized into modular components to separate orchestration, logi
 │   ├── .terraform.lock.hcl
 │   └── main.tf                  # Infrastructure as Code (GCP Resources)
 │                 
-├── tests/
-│   └── test_transform.py    # Unit tests (pytest) for data logic
 ├── images/                      # Screenshots used in this README
 ├── docker-compose.yaml          # Docker configuration for Airflow environment
 ├── Dockerfile
