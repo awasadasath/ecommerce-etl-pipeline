@@ -193,7 +193,7 @@ from transform_logic import run_transform_and_clean
 def transform_data():
     log.info("Starting Transformation Logic from external script...")
     
-    # Executing the external logic (Updated to include output path)
+    # Executing the external logic
     run_transform_and_clean(
         mysql_file=MYSQL_OUTPUT_FILE, 
         api_file=API_OUTPUT_FILE,
