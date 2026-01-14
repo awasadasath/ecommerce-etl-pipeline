@@ -37,5 +37,7 @@ tmp/
 # --- Terraform ---
 .terraform/
 *.tfstate
+*.tfstate.*
 *.tfstate.backup
 *.tfvars
+*.auto.tfvars

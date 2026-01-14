@@ -1,17 +1,19 @@
 provider "google" {
-  project = "gcp-airflow-project-480711"
-  region  = "us-central1"
+  project = var.project_id 
+  region  = var.region
 }
 
 resource "google_storage_bucket" "data_lake" {
-  name          = "gcp-airflow-project-480711-datalake"
-  location      = "US"
+  name          = var.bucket_name 
+  location      = var.region
   storage_class = "STANDARD"
   force_destroy = true
+  uniform_bucket_level_access = true
 }
 
 resource "google_bigquery_dataset" "dataset" {
   dataset_id                 = "ecommerce"
-  location                   = "US"
+  project                    = var.project_id
+  location                   = var.region
   delete_contents_on_destroy = true
 }

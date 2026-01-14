@@ -13,7 +13,7 @@ from transform_logic import run_transform_and_clean
 
 # 1. CONFIGURATION
 
-PROJECT_ID = "gcp-airflow-project-480711"
+PROJECT_ID = Variable.get("gcp_project_id")
 
 BUCKET_NAME   = f"{PROJECT_ID}-datalake"
 BQ_DATASET    = "ecommerce"
